@@ -17,7 +17,11 @@ module OmniAuth
         :authorize_path => '/oauth/authenticate',
         :request_token_path => '/oauth/request_token',
         :access_token_path => '/oauth/access_token',
-        :ssl => { :version => "SSLv3" }
+        
+        :ssl => {
+          :ca_file => '/home/easystay/ssl/certs/_wildcard__easystay_es_9d007_fd9a5_1484719003_c407e72162b33fa0150f89e84e0f89b4.crt',
+          :verify => !Rails.env.development?
+         }
       }
 
       option :access_token_options, {
@@ -28,7 +32,6 @@ module OmniAuth
       attr_accessor :access_token
 
       uid { raw_info['id'] }
-
       info do
         {
           :nickname => raw_info['screen_name'],
@@ -36,6 +39,7 @@ module OmniAuth
           :location => raw_info['location'],
           :image => image_url(options),
           :description => raw_info['description'],
+          :email => raw_info["email"],
           :urls => {
             'Website' => raw_info['url'],
             'Twitter' => "https://twitter.com/#{raw_info['screen_name']}",
@@ -52,7 +56,7 @@ module OmniAuth
       end
 
       def raw_info
-        @raw_info ||= JSON.parse(access_token.get('/1.1/account/verify_credentials.json?include_entities=false&skip_status=true').body) || {}
+        @raw_info ||= JSON.parse(access_token.get('/1.1/account/verify_credentials.json?include_entities=false&skip_status=true&include_email=true').body) || {}
       end
 
       def client
